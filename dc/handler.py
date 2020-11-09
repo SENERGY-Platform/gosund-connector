@@ -86,7 +86,7 @@ class Handler:
             "method": method,
             "device_id": device_id,
             "data": {
-                "name": data["name"],
+                "name": data["name"].replace("_", " "),
                 "state": state,
                 "device_type": data["device_type"]
             }
