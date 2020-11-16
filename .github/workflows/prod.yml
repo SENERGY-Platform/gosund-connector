@@ -40,4 +40,4 @@ jobs:
           push: true
           tags: |
             smartenergyplatform/gosund-connector:prod
-            docker.pkg.github.com/senergy-platform/gosund-connector:prod
+            docker.pkg.github.com/${{ github.repository }}/gosund-connector:prod
