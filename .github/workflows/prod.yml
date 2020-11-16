@@ -40,4 +40,4 @@ jobs:
           push: true
           tags: |
             smartenergyplatform/gosund-connector:prod
-            ghcr.io/SENERGY-Platform/gosund-connector:prod
+            ghcr.io/senergy-platform/gosund-connector:prod
