@@ -22,7 +22,7 @@ import os
 
 
 @simple_env_var.configuration
-class TDCConf:
+class Conf:
 
     @simple_env_var.section
     class MB:
@@ -52,7 +52,7 @@ class TDCConf:
         service_topics = ["POWER"]
 
 
-dc_conf = TDCConf()
+dc_conf = Conf()
 
 
 class EnvVars:
