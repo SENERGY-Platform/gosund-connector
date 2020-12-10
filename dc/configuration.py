@@ -37,8 +37,9 @@ class Conf:
     @simple_env_var.section
     class Client:
         clean_session = False
-        device_topic = "device"
-        lw_topic = "lw"
+        device_topic = "device-manager/device"
+        lw_topic = "device-manager/lw"
+        refresh_topic = "device-manager/refresh"
         event_topic = "event"
         command_topic = "command"
         response_topic = "response"
