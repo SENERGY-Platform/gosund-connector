@@ -35,6 +35,7 @@ def sigtermHandler(_signo, _stack_frame):
 
 def onConnect():
     client.subscribe(dc_conf.Client.event_topic + '/+/' + dc_conf.Devices.lw_topic, 2)
+    client.subscribe(dc_conf.Client.refresh_topic, 2)
 
 
 def onDisconnect():
@@ -43,6 +44,9 @@ def onDisconnect():
 
 def onMessage(topic, payload):
     logger.debug("Received message on topic " + topic)
+    if topic == dc_conf.Client.refresh_topic:
+        handler.resend_devices()
+        return
     topic = topic.split("/")
     msg = {
         "message": payload.decode("utf-8")

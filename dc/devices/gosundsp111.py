@@ -15,13 +15,17 @@
 """
 
 from ..logger import getLogger
-from ..configuration import dc_conf
+from ..configuration import dc_conf, EnvVars
+import mgw_dc
+
 
 logger = getLogger(__name__.split(".", 1)[-1])
 
 
-class GosundSp111:
-    def __init__(self):
+class GosundSp111(mgw_dc.dm.Device):
+    def __init__(self, device_id: str):
+        name = device_id[len(EnvVars.ModuleID.value) + 1:]
+        super().__init__(device_id, name, dc_conf.Devices.type)
         self.pending_service_commands = {}
         for service_id in dc_conf.Devices.service_topics:
             self.pending_service_commands[service_id] = []

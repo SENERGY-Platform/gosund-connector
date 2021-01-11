@@ -15,7 +15,7 @@
 """
 
 import json
-
+import mgw_dc
 from dc.configuration import EnvVars, dc_conf
 from dc.devices.gosundsp111 import GosundSp111
 from dc.logger import getLogger
@@ -43,23 +43,19 @@ class Handler:
         if device_id not in self.gosunds:
             logger.info("Adding " + device_id + " to list of known devices")
             for service in dc_conf.Devices.service_topics:
-                self.client.subscribe(dc_conf.Client.command_topic + '/' + device_id + '/' + service, 2)
+                self.client.subscribe(mgw_dc.com.gen_command_topic(device_id, service), 2)
                 self.client.subscribe(
                     EnvVars.ModuleID.value + "/" + dc_conf.Client.response_topic + '/' + device_id + '/' + service,
                     2)
-            self.gosunds[device_id] = GosundSp111()
+            self.gosunds[device_id] = GosundSp111(device_id)
 
     def handleDeviceLWTMessage(self, msg):
-        data = {
-            "name": msg["device_id"][len(EnvVars.ModuleID.value) + 1:],  # Remove "gosund-" or similar
-            "device_type": dc_conf.Devices.type,
-        }
-        state = None
+        gosund = self.gosunds[msg["device_id"]]
         if msg["message"] == "Online":
-            state = DeviceState.online
+            gosund.state = DeviceState.online
         elif msg["message"] == "Offline":
-            state = DeviceState.offline
-        self.setDevice(msg["device_id"], data, Method.set, state)
+            gosund.state = DeviceState.offline
+        self.__publish_state(gosund)
 
     def handleDeviceResponse(self, msg):
         logger.info(msg["device_id"] + " responded with " + msg["message"])
@@ -69,7 +65,7 @@ class Handler:
         for command_id in self.gosunds[msg["device_id"]].get_and_reset_commands(
             msg["service_id"]):  # Answer every pending service command
             response["command_id"] = command_id
-            self.client.publish(dc_conf.Client.response_topic + '/' + msg["device_id"] + '/' + msg["service_id"],
+            self.client.publish(mgw_dc.com.gen_response_topic(msg["device_id"], msg["service_id"]),
                                 json.dumps(response).replace("'", "\""), 2)
 
     def handleDeviceCommand(self, msg):
@@ -80,16 +76,13 @@ class Handler:
             + msg["service_id"], jsonMsg["data"], 2)
         self.gosunds[msg["device_id"]].add_pending_command(msg["service_id"], jsonMsg["command_id"])
 
-    def setDevice(self, device_id: str, data: dict, method: str, state=None):
-        logger.info("Device " + device_id + " is now " + state)
-        msg = {
-            "method": method,
-            "device_id": device_id,
-            "data": {
-                "name": data["name"].replace("_", " "),
-                "state": state,
-                "device_type": data["device_type"]
-            }
-        }
-        self.client.publish("{}/{}".format(dc_conf.Client.device_topic, EnvVars.ModuleID.value), json.dumps(msg),
-                            2)
+    def resend_devices(self):
+        for _, gosund in self.gosunds.items():
+           self.__publish_state(gosund)
+
+    def __publish_state(self, device: mgw_dc.dm.Device):
+        self.client.publish(
+            topic=mgw_dc.dm.gen_device_topic(EnvVars.ModuleID.value),
+            payload=json.dumps(mgw_dc.dm.gen_set_device_msg(device)),
+            qos=2
+        )
