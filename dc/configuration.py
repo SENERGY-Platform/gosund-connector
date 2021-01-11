@@ -38,7 +38,7 @@ class Conf:
     class Client:
         clean_session = False
         device_topic = "device-manager/device"
-        lw_topic = "device-manager/lw"
+        lw_topic = "device-manager/device/{}/lw"
         refresh_topic = "device-manager/refresh"
         event_topic = "event"
         command_topic = "command"

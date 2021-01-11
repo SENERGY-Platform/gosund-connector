@@ -41,7 +41,7 @@ class Client(threading.Thread):
         self.__mqtt.on_disconnect = self.__onDisconnect
         self.__mqtt.on_message = self.__onMessage
         self.__mqtt.enable_logger(mqtt_logger)
-        self.__mqtt.will_set("{}/{}/{}".format(dc_conf.Client.device_topic, EnvVars.ModuleID.value, dc_conf.Client.lw_topic), 1, 2)
+        self.__mqtt.will_set(dc_conf.Client.lw_topic.format(EnvVars.ModuleID.value), 1, 2)
         self.__discon_count = 0
         self.connectClbk = None
         self.disconnectClbk = None
